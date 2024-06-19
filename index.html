@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modbus Data</title>
+    <script>
+        let socket;
+
+        function connectWebSocket() {
+            socket = new WebSocket(`ws://${window.location.host}`);
+
+            socket.onopen = function() {
+                console.log('WebSocket connection opened');
+            };
+
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                document.getElementById('modbusData').innerText = JSON.stringify(data, null, 2); // Beautify JSON
+            };
+
+            socket.onclose = function() {
+                console.log('WebSocket connection closed, retrying...');
+                setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+            };
+
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        // Initialize WebSocket connection
+        window.onload = connectWebSocket;
+
+        async function writeModbusData() {
+            const address = parseInt(document.getElementById('address').value);
+            const values = document.getElementById('values').value.split(',').map(Number);
+
+            const response = await fetch('/modbus-write', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ address, values }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert('Data written to PLC successfully');
+            } else {
+                alert(`Failed to write data: ${result.message}`);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Modbus Data</h1>
+    <pre id="modbusData">Loading...</pre>
+
+    <h2>Write Data to PLC</h2>
+    <form onsubmit="event.preventDefault(); writeModbusData();">
+        <label for="address">Address:</label>
+        <input type="number" id="address" required><br>
+        <label for="values">Values (comma-separated):</label>
+        <input type="text" id="values" required><br>
+        <button type="submit">Write</button>
+    </form>
+</body>
+</html>
