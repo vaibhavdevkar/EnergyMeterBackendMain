@@ -33,7 +33,7 @@
 // const server = http.createServer(app);
 // const wss = new WebSocket.Server({ server });
 
-// // Create an instance of Modbus client
+// // Create an instance of Modbus clien
 // const client = new ModbusRTU();
 
 // // Connect to the Modbus server via TCP
